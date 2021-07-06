@@ -15,6 +15,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using TheCoEmmployee.ActionFilters;
+
 namespace CodeMazeApp.Controllers
 {
     [Route("api/companies")]
@@ -115,30 +117,21 @@ namespace CodeMazeApp.Controllers
         }
 
         [HttpDelete("{Id}")]
+        [ServiceFilter(typeof(ValidateCompanyExitsAttribute))]
         public IActionResult DeleteCompany(Guid Id)
         {
-            var companyToDelete = _repository.Company.GetCompany(Id);
-            if (companyToDelete == null) return NotFound("Please provide a company Id");
+            var companyToDelete = HttpContext.Items["company"] as Company;
             _repository.Company.DeleteCompany(companyToDelete);
             _repository.Save();
             return NoContent();
         }
 
         [HttpPut("{Id}")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [ServiceFilter(typeof(ValidateCompanyExitsAttribute))]
         public IActionResult UpdateCompany(Guid Id, [FromBody] CompanyForCreationDto company)
         {
-            if (company == null)
-            {
-                _logger.LogError("Comany details were not provided");
-                return BadRequest();
-            }
-
-            var companyEntity = _repository.Company.GetCompany(Id);
-            if (companyEntity == null)
-            {
-                _logger.LogError("Company with id ${Id} does not exist");
-                return NotFound();
-            }
+            var companyEntity = HttpContext.Items["company"] as Company;
 
             _mapper.Map(company, companyEntity);
             _repository.Save();

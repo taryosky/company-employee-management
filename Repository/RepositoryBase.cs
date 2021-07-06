@@ -30,7 +30,9 @@ namespace Repository
 
         public System.Linq.IQueryable<T> FindAll(bool noTracking)
         {
-            return noTracking ? applicationContext.Set<T>().AsNoTracking() : applicationContext.Set<T>();
+            var n = noTracking ? applicationContext.Set<T>().AsNoTracking() : applicationContext.Set<T>();
+            var b = n.AsAsyncEnumerable();
+            return n;
         }
 
         public System.Linq.IQueryable<T> FindByCondition(System.Linq.Expressions.Expression<Func<T, bool>> expression)

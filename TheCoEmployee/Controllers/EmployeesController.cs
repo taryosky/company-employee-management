@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 
+using CodeMazeApp.ActionFilters;
+
 using Contracts;
 
 using Entities.DTOs;
@@ -11,6 +13,8 @@ using Microsoft.AspNetCore.Mvc;
 
 using System;
 using System.Collections.Generic;
+
+using TheCoEmmployee.ActionFilters;
 
 namespace CodeMazeApp.Controllers
 {
@@ -40,7 +44,7 @@ namespace CodeMazeApp.Controllers
                 return NotFound();
             }
 
-            var employeesDto = _mapper.Map<EmployeeDTO>(employees);
+            var employeesDto = _mapper.Map<IEnumerable<EmployeeDTO>>(employees);
             return Ok(employees);
         }
 
@@ -82,31 +86,28 @@ namespace CodeMazeApp.Controllers
         }
 
         [HttpDelete("{Id}")]
+        [ServiceFilter(typeof(ValidateEmployeeForCompanyExists))]
         public IActionResult DeleteEmployee(Guid CompanyId, Guid Id)
         {
-            var company = _repository.Company.GetCompany(CompanyId);
-            if (company == null) return NotFound("No company for the given Id");
-            var employee = _repository.Employee.GetEmployee(CompanyId, Id);
-            if (employee == null) return NotFound("Employee does not exist");
+            var employee = HttpContext.Items["employee"] as Employee;
             _repository.Employee.DeleteEmployee(employee);
             _repository.Save();
             return NoContent();
         }
 
         [HttpPut("{Id}")]
+        [ServiceFilter(typeof(ValidateEmployeeForCompanyExists))]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
         public IActionResult UpdateEmployeeForCompany(Guid CompanyId, Guid Id, [FromBody] EmployeeForUpdateDTO employee)
         {
-            if (employee == null) return BadRequest("Please include employee details");
-            var company = _repository.Company.GetCompany(CompanyId);
-            if (company == null) return NotFound("No company with the given Id");
-            var employeeEntity = _repository.Employee.GetEmployee(CompanyId, Id);
-            if (employee == null) return NotFound("There is no employee with the given Id");
+            var employeeEntity = HttpContext.Items["employee"] as Employee;
             var employeeToUpdate = _mapper.Map(employee, employeeEntity);
             _repository.Save();
             return NoContent();
         }
 
         [HttpPatch("{Id}")]
+        [ServiceFilter(typeof(ValidateEmployeeForCompanyExists))]
         public IActionResult PartiallyPatchEmployeeForCompany(Guid companyId, Guid Id, [FromBody] JsonPatchDocument<EmployeeForUpdateDTO> patchDoc)
         {
             if (patchDoc == null)
@@ -115,19 +116,7 @@ namespace CodeMazeApp.Controllers
                 return BadRequest();
             }
 
-            var company = _repository.Company.GetCompany(companyId);
-            if (company == null)
-            {
-                _logger.LogError($"There is no company with Id ${companyId} in the database");
-                return NotFound();
-            }
-
-            var employeeEntity = _repository.Employee.GetEmployee(companyId, Id);
-            if (employeeEntity == null)
-            {
-                _logger.LogError($"There is no employee with Id ${Id}");
-                return NotFound();
-            }
+            var employeeEntity = HttpContext.Items["employee"] as Employee;
 
             var employeeToPatch = _mapper.Map<EmployeeForUpdateDTO>(employeeEntity);
             patchDoc.ApplyTo(employeeToPatch, ModelState);

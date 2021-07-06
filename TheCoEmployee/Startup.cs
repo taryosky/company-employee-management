@@ -19,6 +19,8 @@ using NLog;
 using System;
 using System.IO;
 
+using TheCoEmmployee.ActionFilters;
+
 namespace CodeMazeApp
 {
     public class Startup
@@ -41,6 +43,8 @@ namespace CodeMazeApp
             services.ConfigureIISIntegration();
             services.Configure<ApiBehaviorOptions>(options => options.SuppressModelStateInvalidFilter = true);
             services.AddScoped<ValidationFilterAttribute>();
+            services.AddScoped<ValidateCompanyExitsAttribute>();
+            services.AddScoped<ValidateEmployeeForCompanyExists>();
             services.AddLogger();
             services.AddControllers(option =>
             {
@@ -60,7 +64,7 @@ namespace CodeMazeApp
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "CodeMazeApp v1"));
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Employee v1"));
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
