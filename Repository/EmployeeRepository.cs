@@ -2,9 +2,9 @@
 
 using Entities;
 using Entities.Models;
+using Entities.RequestFeatures;
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Repository
@@ -15,9 +15,20 @@ namespace Repository
         {
         }
 
-        public IEnumerable<Employee> GetEmployees(Guid companyId)
+        /// <summary>
+        /// Takes the company Id and the pagination parameter and returns a paginated list of employees from the company
+        /// </summary>
+        /// <param name="companyId"></param>
+        /// <param name="employeeParameters"></param>
+        /// <returns></returns>
+        public PagedList<Employee> GetEmployees(Guid companyId, EmployeeParameters employeeParameters)
         {
-            return FindByCondition(x => x.CompanyId.Equals(companyId)).ToList();
+            var employees = FindByCondition(x => x.CompanyId.Equals(companyId))
+                .OrderBy(x => x.Name)
+                .ToList();
+
+            //Paginate the employees from database
+            return PagedList<Employee>.Paginate(employees, employeeParameters.PageNumber, employeeParameters.PageSize);
         }
 
         public Employee GetEmployee(Guid companyId, Guid Id)

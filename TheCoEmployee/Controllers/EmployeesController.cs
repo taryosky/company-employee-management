@@ -6,10 +6,13 @@ using Contracts;
 
 using Entities.DTOs;
 using Entities.Models;
+using Entities.RequestFeatures;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+
+using Newtonsoft.Json;
 
 using System;
 using System.Collections.Generic;
@@ -35,14 +38,15 @@ namespace CodeMazeApp.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Employee>> GetEmployeesForCompany(Guid CompanyId)
+        public ActionResult<IEnumerable<Employee>> GetEmployeesForCompany(Guid CompanyId, [FromQuery] EmployeeParameters employeeParameters)
         {
-            var employees = _repository.Employee.GetEmployees(CompanyId);
+            var employees = _repository.Employee.GetEmployees(CompanyId, employeeParameters);
             if (employees == null)
             {
                 _logger.LogInfo($"There no employees in the company with company Id {CompanyId}");
                 return NotFound();
             }
+            Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(employees.MetaData));
 
             var employeesDto = _mapper.Map<IEnumerable<EmployeeDTO>>(employees);
             return Ok(employees);
@@ -73,16 +77,19 @@ namespace CodeMazeApp.Controllers
             {
                 return BadRequest("Employee information is null");
             }
+
             var company = _repository.Company.GetCompany(CompanyId);
             if (company == null)
             {
                 return BadRequest($"Company with Id {CompanyId} does not exist");
             }
+
             var employeeEntity = _mapper.Map<Employee>(model);
             _repository.Employee.CreateEmployeeForCompany(CompanyId, employeeEntity);
             _repository.Save();
             var employeeToReturn = _mapper.Map<EmployeeDTO>(employeeEntity);
-            return CreatedAtAction($"GetEmployeeForCompany", new { CompanyId = employeeEntity.CompanyId, Id = employeeEntity.Id }, employeeToReturn);
+            return CreatedAtAction($"GetEmployeeForCompany",
+                new { CompanyId = employeeEntity.CompanyId, Id = employeeEntity.Id }, employeeToReturn);
         }
 
         [HttpDelete("{Id}")]
@@ -108,7 +115,8 @@ namespace CodeMazeApp.Controllers
 
         [HttpPatch("{Id}")]
         [ServiceFilter(typeof(ValidateEmployeeForCompanyExists))]
-        public IActionResult PartiallyPatchEmployeeForCompany(Guid companyId, Guid Id, [FromBody] JsonPatchDocument<EmployeeForUpdateDTO> patchDoc)
+        public IActionResult PartiallyPatchEmployeeForCompany(Guid companyId, Guid Id,
+            [FromBody] JsonPatchDocument<EmployeeForUpdateDTO> patchDoc)
         {
             if (patchDoc == null)
             {
@@ -126,6 +134,7 @@ namespace CodeMazeApp.Controllers
                 _logger.LogError("Invalid patchDoc");
                 return UnprocessableEntity(ModelState);
             }
+
             _mapper.Map(employeeToPatch, employeeEntity);
             _repository.Save();
 

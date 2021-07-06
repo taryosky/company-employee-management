@@ -91,7 +91,8 @@ namespace CodeMazeApp.Controllers
         }
 
         [HttpGet("collection/({Ids})", Name = "GetCompanyCollection")]
-        public IActionResult GetCompanyCollection([FromRoute][ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<Guid> Ids)
+        public IActionResult GetCompanyCollection([FromRoute] [ModelBinder(BinderType = typeof(ArrayModelBinder))]
+            IEnumerable<Guid> Ids)
         {
             if (Ids == null) return BadRequest("Please provide company Ids");
             var companiesFromDb = _repository.Company.GetCompaniesById(Ids);
@@ -110,6 +111,7 @@ namespace CodeMazeApp.Controllers
             {
                 _repository.Company.CreateCompany(company);
             }
+
             _repository.Save();
             var companiesToReturn = _mapper.Map<IEnumerable<CompanyDTO>>(companiesToCreate);
             var ids = string.Join(',', companiesToReturn.Select(x => x.Id));

@@ -1,13 +1,13 @@
 ﻿using Entities.Models;
+using Entities.RequestFeatures;
 
 using System;
-using System.Collections.Generic;
 
 namespace Contracts
 {
     public interface IEmployeeRepository
     {
-        IEnumerable<Employee> GetEmployees(Guid companyId);
+        PagedList<Employee> GetEmployees(Guid companyId, EmployeeParameters employeeParameters);
 
         Employee GetEmployee(Guid companyId, Guid Id);
 
