@@ -353,7 +353,7 @@ obj
 .vscode
 bin
 .dockerignore
-*.db
-*.db-shm
-*.db-wal
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
 TheCoEmployee/TheCoEmployee/appsettings.[Dd]evelopment.json
