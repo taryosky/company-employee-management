@@ -4,6 +4,8 @@ using Entities;
 using Entities.Models;
 using Entities.RequestFeatures;
 
+using Repository.Extensions;
+
 using System;
 using System.Linq;
 
@@ -24,6 +26,8 @@ namespace Repository
         public PagedList<Employee> GetEmployees(Guid companyId, EmployeeParameters employeeParameters)
         {
             var employees = FindByCondition(x => x.CompanyId.Equals(companyId))
+                .FilterEmployees(employeeParameters.MinAge, employeeParameters.MaxAge)
+                .SearchEmployees(employeeParameters.SearchTerm)
                 .OrderBy(x => x.Name)
                 .ToList();
 

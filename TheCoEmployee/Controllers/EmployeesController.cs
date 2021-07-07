@@ -40,6 +40,9 @@ namespace CodeMazeApp.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Employee>> GetEmployeesForCompany(Guid CompanyId, [FromQuery] EmployeeParameters employeeParameters)
         {
+            if (!employeeParameters.ValidAgeRange)
+                return BadRequest("Max age can't be less than min age");
+
             var employees = _repository.Employee.GetEmployees(CompanyId, employeeParameters);
             if (employees == null)
             {
