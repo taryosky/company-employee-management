@@ -38,6 +38,7 @@ namespace CodeMazeApp.Controllers
         }
 
         [HttpGet]
+        [HttpHead]
         public ActionResult<IEnumerable<Employee>> GetEmployeesForCompany(Guid CompanyId, [FromQuery] EmployeeParameters employeeParameters)
         {
             if (!employeeParameters.ValidAgeRange)
@@ -52,7 +53,7 @@ namespace CodeMazeApp.Controllers
             Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(employees.MetaData));
 
             var employeesDto = _mapper.Map<IEnumerable<EmployeeDTO>>(employees);
-            return Ok(employees);
+            return Ok(employeesDto);
         }
 
         [HttpGet("{Id}", Name = "GetEmployeeForCompany")]
