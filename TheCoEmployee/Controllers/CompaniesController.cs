@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using TheCoEmmployee.ActionFilters;
 
@@ -32,6 +33,14 @@ namespace CodeMazeApp.Controllers
             _repository = repository;
             _logger = logger;
             _mapper = mapper;
+        }
+
+        [HttpOptions]
+        public async Task<IActionResult> GetCompanyOptions()
+        {
+            Response.Headers.Add("Allow", "GET, OPTIONS, POST");
+            await Task.CompletedTask;
+            return Ok();
         }
 
         [HttpGet]
